@@ -18,11 +18,14 @@ class UserModel(models.Model):
 
     
 class Attendance(models.Model):
-    topic = models.CharField(max_length=255, blank=False , null=False)
     user = models.ForeignKey(UserModel, on_delete=models.CASCADE, null=False, blank=False)
-    isAttended = models.BooleanField(default=False, null=True, blank=True)
-    isLate = models.BooleanField(default=False, null=True, blank=True)
+    status = models.CharField(max_length=10, choices=[
+        ('PRESENT', 'Present'),
+        ('LATE', 'Late'),
+        ('ABSENT', 'Absent')
+    ], default='ABSENT')
     DateAttended = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
-        return f"{self.user} - {self.isAttended}"
+        return f"{self.user} - {self.status} on {self.DateAttended}"
+    

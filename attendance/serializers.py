@@ -1,3 +1,4 @@
+from django.db.models import Count, Case, When, IntegerField
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import *
@@ -23,3 +24,9 @@ class BaseUserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
         
+    
+
+class AttendanceStatSerializer(serializers.Serializer):
+    totalAttendance = serializers.IntegerField()
+    presentCount = serializers.IntegerField()
+    absentCount = serializers.IntegerField()

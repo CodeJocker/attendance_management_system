@@ -2,11 +2,12 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework import generics
 from django.contrib.auth.models import User
-from .serializers import UserSerializer, BaseUserSerializer, AttendanceSerializer
+from .serializers import UserSerializer, BaseUserSerializer, AttendanceSerializer, AttendanceStatSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import UserModel, Attendance
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
+from django.db.models import Count, Case, When, IntegerField
 
 # Members view
 
@@ -23,20 +24,20 @@ class ListUserView(generics.ListAPIView):
 class RetrieveUserView(generics.RetrieveAPIView):
     queryset = UserModel.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-    lookup_field = 'slug'
+    permission_classes = [AllowAny]
+    lookup_field = 'id'
 
 class UpdateUserView(generics.UpdateAPIView):
     queryset = UserModel.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-    lookup_field = 'slug'
+    permission_classes = [AllowAny]
+    lookup_field = 'id'
 
 class DeleteUserView(generics.DestroyAPIView):
     queryset = UserModel.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-    lookup_field = 'slug'
+    permission_classes = [AllowAny]
+    lookup_field = 'id'
 
 # Base user views
 
@@ -54,44 +55,61 @@ class DeleteView(generics.DestroyAPIView):
     queryset = User.objects.all()
     serializer_class = BaseUserSerializer
     permission_classes = [IsAuthenticated]
-    lookup_field = 'username'
+    lookup_field = 'id'
+# class Retr(generics.DestroyAPIView):
+#     queryset = User.objects.all()
+#     serializer_class = BaseUserSerializer
+#     permission_classes = [IsAuthenticated]
+#     lookup_field = 'id'
 
 class UpdateView(generics.UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = BaseUserSerializer
     permission_classes = [IsAuthenticated]
-    lookup_field = 'username'
+    lookup_field = 'id'
 
 # Attendance views
 
 class createAttendanceView(generics.CreateAPIView):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 class ListAttendanceView(generics.ListAPIView):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
 class UpdateAttendanceView(generics.UpdateAPIView):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
-    permission_classes = [IsAuthenticated]
-    lookup_field = 'topic'
+    permission_classes = [AllowAny]
+    lookup_field = 'id'
 
 class RetrieveAttendanceView(generics.RetrieveAPIView):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
-    permission_classes = [IsAuthenticated]
-    lookup_field = 'topic'
+    permission_classes = [AllowAny]
+    lookup_field = 'id'
 
 class DeleteAttendanceView(generics.DestroyAPIView):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
-    permission_classes = [IsAuthenticated]
-    lookup_field = 'topic'
+    permission_classes = [AllowAny]
+    lookup_field = 'id'
 
+class AttendanceStatView(generics.RetrieveAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = AttendanceStatSerializer
+
+    def get_object(self):
+        user_id = self.kwargs['id']
+        stats = Attendance.objects.filter(user_id=user_id).aggregate(
+            totalAttendance=Count('id'),
+            presentCount=Count(Case(When(isAttended=True, then=1), output_field=IntegerField())),
+            absentCount=Count(Case(When(isAttended=False, then=1), output_field=IntegerField()))
+        )
+        return stats
 
 # get user view 
 class CurrentUserView(APIView):

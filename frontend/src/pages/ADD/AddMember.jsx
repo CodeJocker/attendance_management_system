@@ -1,233 +1,160 @@
-import React, { useState } from "react";
-import api from "../../api";
+import React from "react";
+import { useForm, Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import api from "../../api";
+
+const InputField = ({ label, name, type, register, errors, ...rest }) => (
+  <div className="form-control w-full">
+    <label className="label">
+      <span className="label-text font-semibold text-slate-600">{label}</span>
+    </label>
+    <input
+      type={type}
+      {...register(name)}
+      className={`input input-bordered bg-white border-slate-600 focus:outline-blue-700 w-full ${errors[name] ? 'input-error' : ''}`}
+      {...rest}
+    />
+    {errors[name] && <span className="text-red-500 text-xs mt-1">{errors[name].message}</span>}
+  </div>
+);
 
 const AddMember = () => {
-  const [userData, setUserData] = useState([]);
-  const [slug, setSlug] = useState("");
-  const [username, setUsername] = useState("");
-  const [fname, setFname] = useState("");
-  const [lname, setLname] = useState("");
-  const [image, setImage] = useState(null);
-  const [pnumber, setPnumber] = useState("");
-  const [dob, setDob] = useState("");
-  const [churchEntryDate, setChurchEntryDate] = useState("");
-  const [cellEntryDate, setCellEntryDate] = useState("");
+  const { register, handleSubmit, control, formState: { errors } } = useForm();
+  const navigate = useNavigate();
 
-  const navigate = useNavigate()
-
-  const getUserData = () => {
-    api
-      .get("/api/list/user/")
-      .then((res) => res.data)
-      .then((data) => {
-        setUserData(data);
-        console.log(data);
-      })
-      .catch((error) => console.log(error));
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
+  const onSubmit = async (data) => {
     const formData = new FormData();
-    formData.append("slug", slug);
-    formData.append("username", username);
-    formData.append("FirstName", fname);
-    formData.append("LastName", lname);
-    formData.append("image", image);
-    formData.append("Tel", pnumber);
-    formData.append("DateOfBirth", dob);
-    formData.append("DateOfChurchEntry", churchEntryDate);
-    // formData.append("RegisterDate", regDate);
-    formData.append("DateOfCellEntry", cellEntryDate);
-
-    // Log form data entries
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
+    Object.keys(data).forEach(key => {
+      if (key === 'image') {
+        formData.append(key, data[key][0]);
+      } else {
+        formData.append(key, data[key]);
+      }
+    });
 
     try {
-      const res = await api.post(
-        "/api/create/user/",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const res = await api.post("/api/create/user/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       if (res.status === 201) {
-        alert("Member created successfully");
-        getUserData();
+        toast.success("Member created successfully");
         navigate("/view");
       } else {
-        alert("Error creating member");
+        toast.error("Error creating member");
       }
     } catch (error) {
-      console.log(error);
-      if (error.response) {
-        console.log(error.response.data);
-        console.log(error.response.status);
-        console.log(error.response.headers);
-      } else if (error.request) {
-        console.log(error.request);
-      } else {
-        console.log('Error', error.message);
-      }
+      console.error(error);
+      toast.error("An error occurred while creating the member");
     }
   };
 
   return (
-    <div className="flex items-center justify-center translate-y-5 translate-x-[-20px]">
-      <div className="form card shrink-0 w-full max-w-sm">
-        <fieldset className="form-control border shadow-2xl rounded-md p-3">
-          <header className="text-2xl font text-center font-bold">
-            Add Members
-          </header>
-          <form
-            method="post"
-            onSubmit={handleSubmit}
-            className="flex flex-col card-body"
-            encType="multipart/form-data"
-          >
-            <div className="flex gap-x-5">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Slug</span>
-                </label>
-                <input
-                  type="text"
-                  name="slug"
-                  className="input input-bordered bg-slate-200 placeholder:text-slate-800 placeholder:font text-slate-800"
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  placeholder="Enter the slug field"
-                />
-              </div>
-
-              <div className="form-control">
-                <label htmlFor="" className="label">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  className="input input-bordered bg-slate-200 placeholder:text-slate-800 placeholder:font text-slate-800"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter the username"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-x-5">
-              <div className="form-control">
-                <label className="label">First Name</label>
-                <input
-                  type="text"
-                  name="fname"
-                  className="input input-bordered bg-slate-200 placeholder:text-slate-800 placeholder:font text-slate-800"
-                  value={fname}
-                  onChange={(e) => setFname(e.target.value)}
-                  placeholder="Enter the first name"
-                />
-              </div>
-
-              <div className="form-control">
-                <label htmlFor="" className="label">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  name="lname"
-                  className="input input-bordered bg-slate-200 placeholder:text-slate-800 placeholder:font text-slate-800"
-                  value={lname}
-                  onChange={(e) => setLname(e.target.value)}
-                  placeholder="Enter the last name"
-                />
-              </div>
-            </div>
-
-            <div className="form-control">
-              <label htmlFor="" className="label">
-                Photo
-              </label>
-              <input
-                type="file"
-                name="image"
-                className="input-bordered input bg-slate-200 placeholder:bg-slate-100"
-                onChange={(e) => setImage(e.target.files[0])}
+    <div className="flex items-center justify-center py-3 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Add New Member
+          </h2>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
+              <InputField
+                label="Slug"
+                name="slug"
+                type="text"
+                register={register}
+                errors={errors}
+                required
+              />
+              <InputField
+                label="Username"
+                name="username"
+                type="text"
+                register={register}
+                errors={errors}
+                required
+              />
+              <InputField
+                label="First Name"
+                name="FirstName"
+                type="text"
+                register={register}
+                errors={errors}
+                required
+              />
+              <InputField
+                label="Last Name"
+                name="LastName"
+                type="text"
+                register={register}
+                errors={errors}
+                required
+              />
+              <InputField
+                label="Phone Number"
+                name="Tel"
+                type="tel"
+                register={register}
+                errors={errors}
+                required
+              />
+              <InputField
+                label="Date of Birth"
+                name="DateOfBirth"
+                type="date"
+                register={register}
+                errors={errors}
+                required
+              />
+              <InputField
+                label="Date of Church Entry"
+                name="DateOfChurchEntry"
+                type="date"
+                register={register}
+                errors={errors}
+                required
+              />
+              <InputField
+                label="Date of Cell Entry"
+                name="DateOfCellEntry"
+                type="date"
+                register={register}
+                errors={errors}
+                required
               />
             </div>
-
-            <div className="flex gap-x-5">
-              <div className="form-control">
-                <label htmlFor="" className="label">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  name="pnumber"
-                  className="input input-bordered bg-slate-200 placeholder:text-slate-800 placeholder:font text-slate-800"
-                  value={pnumber}
-                  onChange={(e) => setPnumber(e.target.value)}
-                  placeholder="Enter mobile phone number"
-                />
-              </div>
-
-              <div className="form-control">
-                <label htmlFor="" className="label">
-                  Date Of Birth
-                </label>
-                <input
-                  type="date"
-                  name="dob"
-                  className="input input-bordered bg-slate-200 w-56 placeholder:text-slate-800 placeholder:font text-slate-800"
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
-                />
-              </div>
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700">
+                Photo
+              </label>
+              <Controller
+                name="image"
+                control={control}
+                rules={{ required: "Photo is required" }}
+                render={({ field }) => (
+                  <input
+                    type="file"
+                    onChange={(e) => field.onChange(e.target.files)}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  />
+                )}
+              />
+              {errors.image && <span className="text-red-500 text-xs mt-1">{errors.image.message}</span>}
             </div>
+          </div>
 
-            <div className="flex gap-x-5">
-              <div className="form-control">
-                <label htmlFor="" className="label">
-                  Date Of Church Entry
-                </label>
-                <input
-                  type="date"
-                  name="churchEntryDate"
-                  className="input input-bordered bg-slate-200 w-56 placeholder:text-slate-800 placeholder:font text-slate-800"
-                  value={churchEntryDate}
-                  onChange={(e) => setChurchEntryDate(e.target.value)}
-                />
-              </div>
-              <div className="form-control">
-                <label htmlFor="" className="label">
-                  Date Of Cell Entry
-                </label>
-                <input
-                  type="date"
-                  name="cellEntryDate"
-                  className="input input-bordered bg-slate-200 w-56 placeholder:text-slate-800 placeholder:font text-slate-800"
-                  value={cellEntryDate}
-                  onChange={(e) => setCellEntryDate(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="button">
-              <button
-                type="submit"
-                className="btn btn-info btn-outline w-[470px]"
-              >
-                Save
-              </button>
-            </div>
-          </form>
-        </fieldset>
+          <div>
+            <button
+              type="submit"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Add Member
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -1,156 +1,119 @@
-import React, { useState, useEffect } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import axios from "axios";
-// Import Swiper styles
-import "swiper/css";
-import "swiper/css/effect-coverflow";
-import "swiper/css/pagination";
-
-// import required modules
-import { Pagination } from "swiper/modules";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import api from "../../api";
+import { useNavigate } from "react-router-dom";
 
 const Mark = ({ data }) => {
-  const [attendanceStatus, setAttendanceStatus] = useState({});
-  const [userId, setUserId] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const { register, handleSubmit, reset } = useForm();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchUserId = async () => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get("/api/current-user/");
-        console.log("User data received:", response.data); // Debugging line
-        if (response.data && response.data.id) {
-          setUserId(response.data.id);
-        } else {
-          setError("User ID not found in the response");
-        }
-      } catch (error) {
-        console.error("Error fetching user ID:", error);
-        setError("Failed to fetch user ID");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUserId();
-  }, []);
-
-  const handleAttendance = async (itemId, isAttended, isLate) => {
-    if (!userId) {
-      console.error("User ID not available. Current userId:", userId);
-      setError("User ID not available. Please try refreshing the page.");
-      return;
-    }
-
-    setIsLoading(true);
+  const onSubmit = async (formData) => {
     try {
-      const response = await axios.post("/api/attendance/", {
-        user: userId,
-        attendee: itemId,
-        isAttended: isAttended,
-        isLate: isLate,
-        topic: "Your topic here",
-      });
-
-      setAttendanceStatus(prevStatus => ({
-        ...prevStatus,
-        [itemId]: { isAttended, isLate }
+      // Create an array of attendance entries
+      const attendanceData = data.map((member) => ({
+        user: member.id,
+        isAttended: formData[member.id]?.present || false,
+        isLate: formData[member.id]?.late || false,
+        DateAttended: selectedDate.toISOString(),
       }));
 
-      console.log("Attendance recorded:", response.data);
+      // Send the attendance data to the backend
+      const res = await api.post("/api/attendance/create/", attendanceData, {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (res.status === 201) {
+        toast.success("Attendance marked successfully");
+        navigate("/view");
+      } else {
+        toast.error("Error marking attendance");
+      }
+      reset();
     } catch (error) {
-      console.error("Error recording attendance:", error);
-      setError("Failed to record attendance");
-    } finally {
-      setIsLoading(false);
+      console.error(error);
+      toast.error("Failed to mark attendance");
     }
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
   return (
-    <Swiper
-      effect={"coverflow"}
-      slidesPerView={"auto"}
-      centeredSlides={true}
-      grabCursor={true}
-      loop={true}
-      spaceBetween={50}
-      pagination={{ clickable: true }}
-      scrollbar={{ draggable: true }}
-      modules={[Pagination]}
-      className="h-[85vh]"
-    >
-      {data.length > 0 ? (
-        data.map((item) => (
-          <SwiperSlide key={item.id} className="p-5 grid grid-cols-4 items-center justify-center w-[1000px]">
-            <fieldset className="form-centrol shadow-2xl w-[300px] rounded-md">
-              <div className="card">
-                <div className="card-body">
-                  <div className="image">
-                    <img
-                      src={item.image}
-                      alt=""
-                      className="rounded-full w-60 h-60"
+    <div className="container mx-auto px-4 py-8 bg-white">
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">Mark Attendance</h2>
+      <div className="mb-6">
+        <label
+          className="block text-gray-700 text-sm font-bold mb-2"
+          htmlFor="date"
+        >
+          Select Date
+        </label>
+        <DatePicker
+          selected={selectedDate}
+          onChange={(date) => setSelectedDate(date)}
+          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        />
+      </div>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="bg-white shadow-md rounded my-6">
+          <table className="min-w-max w-full table-auto">
+            <thead>
+              <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                <th className="py-3 px-6 text-left">Name</th>
+                <th className="py-3 px-6 text-center">Present</th>
+                <th className="py-3 px-6 text-center">Late</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-600 text-sm font-light">
+              {data.map((member) => (
+                <tr
+                  key={member.id}
+                  className="border-b border-gray-200 hover:bg-gray-100"
+                >
+                  <td className="py-3 px-6 text-left whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="mr-2">
+                        <img
+                          className="w-6 h-6 rounded-full"
+                          src={member.image}
+                          alt={member.username}
+                        />
+                      </div>
+                      <span className="font-medium">
+                        {member.FirstName} {member.LastName}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-3 px-6 text-center">
+                    <input
+                      type="checkbox"
+                      {...register(`${member.id}.present`)}
+                      className="form-checkbox h-5 w-5 text-blue-600"
                     />
-                  </div>
-                  <div className="desc">
-                    <div className="name flex gap-2 items-center justify-center">
-                      <h1 className="font">{item.FirstName}</h1>
-                      <h1 className="font">{item.LastName}</h1>
-                    </div>
-                    <div className="date flex items-center justify-center">
-                      <h1>{new Date().toLocaleDateString("en-US")}</h1>
-                    </div>
-                    <div className="buttons flex flex-col space-y-3">
-                      <div
-                        className={`btn ${attendanceStatus[item.id]?.isAttended ? 'btn-success' : 'btn-error'}`}
-                        onClick={() => handleAttendance(item.id, !attendanceStatus[item.id]?.isAttended, false)}
-                      >
-                        {attendanceStatus[item.id]?.isAttended ? 'Attended' : 'Not Attended'}
-                      </div>
-                      <div
-                        className={`btn ${attendanceStatus[item.id]?.isLate ? 'btn-warning' : 'btn-outline'}`}
-                        onClick={() => handleAttendance(item.id, true, !attendanceStatus[item.id]?.isLate)}
-                      >
-                        Is Late
-                      </div>
-                      <div className="text mt-4 text-center">Status</div>
-                      <div>
-                        {attendanceStatus[item.id]?.isAttended ? (
-                          attendanceStatus[item.id]?.isLate ? (
-                            <div className="btn btn-warning w-full">
-                              Late
-                            </div>
-                          ) : (
-                            <div className="btn btn-success w-full">
-                              Present
-                            </div>
-                          )
-                        ) : (
-                          <div className="btn btn-error w-full">Absent</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </fieldset>
-          </SwiperSlide>
-        ))
-      ) : (
-        <SwiperSlide>
-          <span className="loading loading-spinner flex items-center justify-center"></span>
-        </SwiperSlide>
-      )}
-    </Swiper>
+                  </td>
+                  <td className="py-3 px-6 text-center">
+                    <input
+                      type="checkbox"
+                      {...register(`${member.id}.late`)}
+                      className="form-checkbox h-5 w-5 text-blue-600"
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex items-center justify-end">
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="submit"
+          >
+            Mark Attendance
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 

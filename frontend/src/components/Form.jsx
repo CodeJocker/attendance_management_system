@@ -8,19 +8,19 @@ function Form({ route, method }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate(); // Corrected variable name
-
-    const name = method === "login" ? "Login" : "Register"; // Use strict equality
+    const navigate = useNavigate(); 
+    
+    const name = method === "login" ? "Login" : "Register"; 
 
     const handleSubmit = async (e) => {
         setLoading(true);
         e.preventDefault();
         try {
             const res = await api.post(route, { username, password });
-            if (method === "login") { // Use strict equality
+            if (method === "login") {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
                 localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-                navigate("/index"); // Corrected method name
+                navigate("/index"); 
             } else {
                 navigate("/login");
             }

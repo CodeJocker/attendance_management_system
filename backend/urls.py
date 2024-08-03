@@ -10,9 +10,9 @@ urlpatterns = [
     
     path("api/list/user/", ListUserView.as_view(), name="list-user" ),
     path('api/create/user/' , createUserView.as_view() , name="create-user"),
-    path('api/delete/user/<slug:slug>/' , DeleteUserView.as_view() , name="delete-user"),
-    path('api/retrieve/user/<slug:slug>/' , RetrieveUserView.as_view() , name="retrieve-user"),
-    path('api/update/user/<slug:slug>/' , UpdateUserView.as_view() , name="update-user"),
+    path('api/delete/user/<int:id>/' , DeleteUserView.as_view() , name="delete-user"),
+    path('api/retrieve/user/<int:id>/' , RetrieveUserView.as_view() , name="retrieve-user"),
+    path('api/update/user/<int:id>/' , UpdateUserView.as_view() , name="update-user"),
     
     # these are the base user urls
     path('api/auth/user/create/', CreateView.as_view(), name="create"),
@@ -23,7 +23,8 @@ urlpatterns = [
     # this is the attendance url
     path('api/attendance/create/', createAttendanceView.as_view(), name="create-attendance"),
     path('api/attendance/list/', ListAttendanceView.as_view(), name="list-attendance"),
-    path('api/attendance/retrieve/<slug:slug>/', RetrieveAttendanceView.as_view(), name="retrieve-attendance"),
+    path('api/attendance/retrieve/<int:id>/', RetrieveAttendanceView.as_view(), name="retrieve-attendance"),
+    path('api/attendance/retrieve/stats/<int:id>/', RetrieveAttendanceView.as_view(), name="retrieve-attendance"),
     path('api/attendance/delete/<slug:slug>/', DeleteAttendanceView.as_view(), name="delete-attendance"),
     path('api/attendance/update/<slug:slug>/', UpdateAttendanceView.as_view(), name="update-attendance"),
     

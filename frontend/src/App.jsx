@@ -12,6 +12,9 @@ import Mark from "./pages/mark/Mark";
 import Test from "./tests/test";
 import api from "./api";
 import ViewAttendance from "./pages/View/ViewAttendance";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import UserDetails from "./components/details/Details";
 
 function Logout() {
   localStorage.clear();
@@ -25,9 +28,12 @@ function RegisterAndLogout() {
 
 function App() {
   const [userData, setUserData] = useState([]);
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    getUserData()
-  }, [])
+    getUserData();
+    fetchAttendanceData();
+  }, []);
   const getUserData = () => {
     api
       .get("/api/list/user/")
@@ -38,43 +44,75 @@ function App() {
       })
       .catch((error) => console.log(error));
   };
+  const fetchAttendanceData = () => {
+    api
+      .get("/api/attendance/list/")
+      .then((res) => res.data)
+      .then((data) => {
+        setAttendanceData(data);
+        console.log(data);
+        setIsLoading(false);
+        toast.success("attendance listed successfully");
+      })
+      .catch((error) => {
+        toast.error("Failed to fetch attendance data", error);
+        setIsLoading(false);
+      });
+  };
   return (
     <>
       <section id="nav" className="nav">
         <Navbar />
       </section>
       <Routes>
-        <Route path="/index" element={
-          <ProtectedRoute>
-            <Index />
-          </ProtectedRoute>
-        } />
-        <Route path="/register-member" element={
-          <ProtectedRoute>
-            <AddMember />
-          </ProtectedRoute>
-          } />
-        <Route path="/view" element={
-          <ProtectedRoute>
-            <View data={userData} />
-          </ProtectedRoute>
-            } />
-        <Route path="/mark" element={
-          <ProtectedRoute>
-            <Mark data={userData} />
-          </ProtectedRoute>
-            } />
-        <Route path="/view-attendance" element={
-          <ProtectedRoute>
-            <ViewAttendance />
-          </ProtectedRoute>
-            } />
+        <Route
+          path="/index"
+          element={
+            <ProtectedRoute>
+              <Index />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/register-member"
+          element={
+            <ProtectedRoute>
+              <AddMember />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/view"
+          element={
+            <ProtectedRoute>
+              <View data={userData} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mark"
+          element={
+            <ProtectedRoute>
+              <Mark data={userData} attendance={attendanceData} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/view-attendance"
+          element={
+            <ProtectedRoute>
+              <ViewAttendance />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/details/:id" element={<UserDetails />} />
         <Route path="/test" element={<Test />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <ToastContainer />
     </>
   );
 }
