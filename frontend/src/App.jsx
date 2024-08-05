@@ -15,6 +15,7 @@ import ViewAttendance from "./pages/View/ViewAttendance";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import UserDetails from "./components/details/Details";
+import Theme from "./components/details/theme";
 
 function Logout() {
   localStorage.clear();
@@ -105,6 +106,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/" element={<Theme />} />
         <Route path="/details/:id" element={<UserDetails />} />
         <Route path="/test" element={<Test />} />
         <Route path="/login" element={<Login />} />

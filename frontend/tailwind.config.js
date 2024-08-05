@@ -1,42 +1,8 @@
-// // const flowbite = require("flowbite-react/tailwind");
-// // /** @type {import('tailwindcss').Config} */
-// // export default {
-// //   content: [
-// //     "./index.html",
-// //     "./src/**/*.{js,ts,jsx,tsx}",
-// //     flowbite.content(),
-// //   ],
-// //   theme: {
-// //     extend: {},
-// //   },
-// //   plugins: [require("daisyui")],
-// //   plugins: [flowbite.plugin],
-// // }
-
-
-
-// // const flowbite = require("flowbite-react/tailwind");
-// import { Flowbite } from "flowbite-react"
-
-// module.exports = {
-//   purge: [
-//     "./index.html",
-//     "./src/**/*.{js,ts,jsx,tsx}",
-//     Flowbite.content(),
-//   ],
-//   theme: {
-//     extend: {},
-//   },
-//   plugins: [
-//     require("daisyui"),
-//     Flowbite.plugin(),
-//   ],
-// };
-
-
+/** @type {import('tailwindcss').Config} */
 const flowbite = require("flowbite-react/tailwind");
 
 module.exports = {
+  darkMode: 'class',
   purge: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",

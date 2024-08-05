@@ -21,12 +21,12 @@ urlpatterns = [
     # path('api/auth/user/update/<username:username>/', UpdateView.as_view(), name="update"),
     
     # this is the attendance url
-    path('api/attendance/create/', createAttendanceView.as_view(), name="create-attendance"),
+    path('api/attendance/create/', CreateOrUpdateAttendanceView.as_view(), name="create-attendance"),
     path('api/attendance/list/', ListAttendanceView.as_view(), name="list-attendance"),
     path('api/attendance/retrieve/<int:id>/', RetrieveAttendanceView.as_view(), name="retrieve-attendance"),
     path('api/attendance/retrieve/stats/<int:id>/', RetrieveAttendanceView.as_view(), name="retrieve-attendance"),
-    path('api/attendance/delete/<slug:slug>/', DeleteAttendanceView.as_view(), name="delete-attendance"),
-    path('api/attendance/update/<slug:slug>/', UpdateAttendanceView.as_view(), name="update-attendance"),
+    path('api/attendance/delete/<int:id>/', DeleteAttendanceView.as_view(), name="delete-attendance"),
+    path('api/attendance/update/<int:id>/', UpdateAttendanceView.as_view(), name="update-attendance"),
     
     # these are the token based urls
     path("api/token/" , TokenObtainPairView.as_view() , name="get_token"),

@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework import generics
@@ -6,7 +7,9 @@ from .serializers import UserSerializer, BaseUserSerializer, AttendanceSerialize
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import UserModel, Attendance
 from rest_framework.authentication import TokenAuthentication
+from rest_framework import status
 from rest_framework.response import Response
+from django.db import IntegrityError
 from django.db.models import Count, Case, When, IntegerField
 
 # Members view
@@ -70,11 +73,35 @@ class UpdateView(generics.UpdateAPIView):
 
 # Attendance views
 
-class createAttendanceView(generics.CreateAPIView):
+class CreateOrUpdateAttendanceView(APIView):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
     permission_classes = [AllowAny]
 
+    def post(self, request, format=None):
+        attendances = request.data
+        updated_attendances = []
+
+        for attendance_data in attendances:
+            try:
+                # Log the incoming data for debugging
+                print("Received attendance data:", attendance_data)
+
+                attendance, created = Attendance.objects.update_or_create(
+                    user_id=attendance_data['user'],
+                    DateAttended=attendance_data.get('date'),  # Use .get() with a default value
+                    defaults={'status': attendance_data.get('status', 'ABSENT')}  # Provide a default status
+                )
+                serializer = AttendanceSerializer(attendance)
+                updated_attendances.append(serializer.data)
+            except IntegrityError:
+                return Response({'error': 'IntegrityError: Duplicate entry for user and date combination'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            except KeyError as e:
+                return Response({'error': f'Missing required field: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(updated_attendances, status=status.HTTP_200_OK)
+    
 class ListAttendanceView(generics.ListAPIView):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer

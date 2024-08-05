@@ -1,4 +1,5 @@
 from django.db import models
+# from django.contrib.auth import get_user_model
 
 # Create your models here.
 
@@ -16,7 +17,7 @@ class UserModel(models.Model):
     def __str__(self):
         return f"{self.LastName} - {self.FirstName}"
 
-    
+
 class Attendance(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.CASCADE, null=False, blank=False)
     status = models.CharField(max_length=10, choices=[
@@ -24,8 +25,10 @@ class Attendance(models.Model):
         ('LATE', 'Late'),
         ('ABSENT', 'Absent')
     ], default='ABSENT')
-    DateAttended = models.DateTimeField(auto_now_add=True)
+    DateAttended = models.DateField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'DateAttended']
 
     def __str__(self):
         return f"{self.user} - {self.status} on {self.DateAttended}"
-    

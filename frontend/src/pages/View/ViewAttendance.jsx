@@ -4,7 +4,6 @@ import { format } from 'date-fns';
 import { FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-
 import { toast } from 'react-toastify';
 import api from '../../api';
 
@@ -14,13 +13,9 @@ const ViewAttendance = () => {
   const [attendanceData, setAttendanceData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAttendanceData();
-  }, []);
-
   const fetchAttendanceData = async () => {
     try {
-      const response = api.get('api/attendance/list/');
+      const response = await api.get('api/attendance/list/'); // Add 'await' here
       setAttendanceData(response.data);
       setIsLoading(false);
     } catch (error) {
@@ -28,6 +23,12 @@ const ViewAttendance = () => {
       setIsLoading(false);
     }
   };
+  
+  useEffect(() => {
+    fetchAttendanceData();
+  }, []); // Ensure this is only called once
+  
+  
 
   const columns = React.useMemo(
     () => [

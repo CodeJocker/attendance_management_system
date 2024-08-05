@@ -13,20 +13,25 @@ const Mark = ({ data }) => {
 
   const onSubmit = async (formData) => {
     try {
-      // Create an array of attendance entries
-      const attendanceData = data.map((member) => ({
-        user: member.id,
-        isAttended: formData[member.id]?.present || false,
-        isLate: formData[member.id]?.late || false,
-        DateAttended: selectedDate.toISOString(),
-      }));
+      const attendanceData = data.map((member) => {
+        let status = 'ABSENT';
+        if (formData[member.id]?.present) {
+          status = formData[member.id]?.late ? 'LATE' : 'PRESENT';
+        }
+        return {
+          user: member.id,
+          status: status,
+          date: selectedDate.toISOString().split('T')[0], // Changed to 'date'
+        };
+      });
 
-      // Send the attendance data to the backend
+      console.log("Submitting attendance data:", attendanceData);
+
       const res = await api.post("/api/attendance/create/", attendanceData, {
         headers: { "Content-Type": "application/json" },
       });
 
-      if (res.status === 201) {
+      if (res.status === 200) {
         toast.success("Attendance marked successfully");
         navigate("/view");
       } else {
@@ -34,7 +39,10 @@ const Mark = ({ data }) => {
       }
       reset();
     } catch (error) {
-      console.error(error);
+      console.error("Error submitting attendance:", error);
+      if (error.response) {
+        console.error("Server response:", error.response.data);
+      }
       toast.error("Failed to mark attendance");
     }
   };
@@ -43,10 +51,7 @@ const Mark = ({ data }) => {
     <div className="container mx-auto px-4 py-8 bg-white">
       <h2 className="text-3xl font-bold mb-6 text-gray-800">Mark Attendance</h2>
       <div className="mb-6">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="date"
-        >
+        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date">
           Select Date
         </label>
         <DatePicker
@@ -67,18 +72,11 @@ const Mark = ({ data }) => {
             </thead>
             <tbody className="text-gray-600 text-sm font-light">
               {data.map((member) => (
-                <tr
-                  key={member.id}
-                  className="border-b border-gray-200 hover:bg-gray-100"
-                >
+                <tr key={member.id} className="border-b border-gray-200 hover:bg-gray-100">
                   <td className="py-3 px-6 text-left whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="mr-2">
-                        <img
-                          className="w-6 h-6 rounded-full"
-                          src={member.image}
-                          alt={member.username}
-                        />
+                        <img className="w-6 h-6 rounded-full" src={member.image} alt={member.username} />
                       </div>
                       <span className="font-medium">
                         {member.FirstName} {member.LastName}
@@ -105,10 +103,7 @@ const Mark = ({ data }) => {
           </table>
         </div>
         <div className="flex items-center justify-end">
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            type="submit"
-          >
+          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
             Mark Attendance
           </button>
         </div>
