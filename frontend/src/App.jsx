@@ -16,6 +16,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import UserDetails from "./components/details/Details";
 import Theme from "./components/details/theme";
+import AttendanceReport from "./pages/report/Report";
+import Footer from "./components/footer/Footer";
 
 function Logout() {
   localStorage.clear();
@@ -35,6 +37,21 @@ function App() {
     getUserData();
     fetchAttendanceData();
   }, []);
+  const fetchAttendanceData = () => {
+    api
+      .get("/api/attendance/list/")
+      .then((res) => res.data)
+      .then((data) => {
+        setAttendanceData(data);
+        console.log(data);
+        setIsLoading(false);
+        // toast.success("attendance listed successfully");
+      })
+      .catch((error) => {
+        toast.error("Failed to fetch attendance data", error);
+        setIsLoading(false);
+      });
+  };
   const getUserData = () => {
     api
       .get("/api/list/user/")
@@ -45,23 +62,8 @@ function App() {
       })
       .catch((error) => console.log(error));
   };
-  const fetchAttendanceData = () => {
-    api
-      .get("/api/attendance/list/")
-      .then((res) => res.data)
-      .then((data) => {
-        setAttendanceData(data);
-        console.log(data);
-        setIsLoading(false);
-        toast.success("attendance listed successfully");
-      })
-      .catch((error) => {
-        toast.error("Failed to fetch attendance data", error);
-        setIsLoading(false);
-      });
-  };
   return (
-    <>
+    <div className="bg-white">
       <section id="nav" className="nav">
         <Navbar />
       </section>
@@ -71,6 +73,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Index />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/report"
+          element={
+            <ProtectedRoute>
+              <AttendanceReport />
             </ProtectedRoute>
           }
         />
@@ -114,8 +124,9 @@ function App() {
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <Footer />
       <ToastContainer />
-    </>
+    </div>
   );
 }
 

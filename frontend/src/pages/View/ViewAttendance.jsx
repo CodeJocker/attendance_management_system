@@ -1,189 +1,175 @@
-import React, { useState, useEffect } from 'react';
-import { useTable, useSortBy, usePagination } from 'react-table';
-import { format } from 'date-fns';
-import { FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-import { toast } from 'react-toastify';
-import api from '../../api';
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+import React, { useState, useEffect } from "react";
+import { format } from "date-fns";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import api from "../../api";
+import { FaCalendarAlt, FaDownload, FaUserCheck, FaUserTimes, FaUserClock } from "react-icons/fa";
+import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
 
 const ViewAttendance = () => {
   const [attendanceData, setAttendanceData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchDate, setSearchDate] = useState(new Date());
+
+  useEffect(() => {
+    fetchAttendanceData();
+  }, [searchDate]);
 
   const fetchAttendanceData = async () => {
+    setIsLoading(true);
     try {
-      const response = await api.get('api/attendance/list/'); // Add 'await' here
-      setAttendanceData(response.data);
+      const formattedDate = format(searchDate, "yyyy-MM-dd");
+      const response = await api.get("/api/attendance/retrieve/by-date/", {
+        params: { date: formattedDate },
+      });
+      setAttendanceData(response.data || []);
       setIsLoading(false);
-    } catch (error) {
-      toast.error('Failed to fetch attendance data');
+    } catch (err) {
+      console.error("Error fetching attendance data:", err);
+      setError(`Failed to fetch attendance data: ${err.message}`);
       setIsLoading(false);
     }
   };
-  
-  useEffect(() => {
-    fetchAttendanceData();
-  }, []); // Ensure this is only called once
-  
-  
 
-  const columns = React.useMemo(
-    () => [
-      {
-        Header: 'Name',
-        accessor: 'name',
-      },
-      {
-        Header: 'Total Attendance',
-        accessor: 'totalAttendance',
-      },
-      {
-        Header: 'Attendance Rate',
-        accessor: 'attendanceRate',
-        Cell: ({ value }) => `${value.toFixed(2)}%`,
-      },
-      {
-        Header: 'Last Attendance',
-        accessor: 'lastAttendance',
-        Cell: ({ value }) => format(new Date(value), 'dd/MM/yyyy'),
-      },
-    ],
-    []
-  );
+  const handleDateChange = (date) => {
+    setSearchDate(date);
+  };
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    page,
-    prepareRow,
-    canPreviousPage,
-    canNextPage,
-    pageOptions,
-    pageCount,
-    gotoPage,
-    nextPage,
-    previousPage,
-    setPageSize,
-    state: { pageIndex, pageSize },
-  } = useTable(
-    {
-      columns,
-      data: attendanceData.length > 0 ? attendanceData : [],
-      initialState: { pageIndex: 0, pageSize: 10 },
-    },
-    useSortBy,
-    usePagination
-  );
-
-  const chartData = {
-    labels: attendanceData.map(d => d.name),
-    datasets: [
-      {
-        label: 'Attendance Rate',
-        data: attendanceData.map(d => d.attendanceRate),
-        fill: false,
-        backgroundColor: 'rgb(75, 192, 192)',
-        borderColor: 'rgba(75, 192, 192, 0.2)',
-      },
-    ],
+  const generatePDF = async () => {
+    if (attendanceData.length > 0) {
+      const blob = await pdf(<AttendanceReportPDF reportData={attendanceData} date={searchDate} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `attendance_report_${format(searchDate, "yyyy-MM-dd")}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-indigo-500"></div>
+      </div>
+    );
   }
 
+  if (error) {
+    return (
+      <div className="text-center py-10 text-red-600 bg-red-100 rounded-lg m-4">
+        <p className="font-bold">Error:</p>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "PRESENT":
+        return <FaUserCheck className="text-green-500" />;
+      case "LATE":
+        return <FaUserClock className="text-yellow-500" />;
+      case "ABSENT":
+        return <FaUserTimes className="text-red-500" />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">Attendance Overview</h2>
-      
-      {attendanceData.length > 0 ? (
-        <>
-          <div className="mb-8">
-            <Line data={chartData} />
-          </div>
-
-          <div className="overflow-x-auto bg-white shadow-lg rounded-lg">
-            <table {...getTableProps()} className="w-full table-auto">
-              <thead>
-                {headerGroups.map(headerGroup => (
-                  <tr {...headerGroup.getHeaderGroupProps()} className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                    {headerGroup.headers.map(column => (
-                      <th {...column.getHeaderProps(column.getSortByToggleProps())} className="py-3 px-6 text-left">
-                        {column.render('Header')}
-                        <span>
-                          {column.isSorted
-                            ? column.isSortedDesc
-                              ? <FaSortDown className="inline ml-1" />
-                              : <FaSortUp className="inline ml-1" />
-                            : <FaSort className="inline ml-1" />}
-                        </span>
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody {...getTableBodyProps()} className="text-gray-600 text-sm font-light">
-                {page.map(row => {
-                  prepareRow(row)
-                  return (
-                    <tr {...row.getRowProps()} className="border-b border-gray-200 hover:bg-gray-100">
-                      {row.cells.map(cell => {
-                        return (
-                          <td {...cell.getCellProps()} className="py-3 px-6 text-left whitespace-nowrap">
-                            {cell.render('Cell')}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="pagination mt-4 flex justify-between items-center">
-            <div>
-              <button onClick={() => gotoPage(0)} disabled={!canPreviousPage} className="px-4 py-2 font-bold text-gray-500 bg-gray-300 rounded-l hover:bg-gray-400">
-                {'<<'}
-              </button>
-              <button onClick={() => previousPage()} disabled={!canPreviousPage} className="px-4 py-2 font-bold text-gray-500 bg-gray-300 hover:bg-gray-400">
-                {'<'}
-              </button>
-              <button onClick={() => nextPage()} disabled={!canNextPage} className="px-4 py-2 font-bold text-gray-500 bg-gray-300 hover:bg-gray-400">
-                {'>'}
-              </button>
-              <button onClick={() => gotoPage(pageCount - 1)} disabled={!canNextPage} className="px-4 py-2 font-bold text-gray-500 bg-gray-300 rounded-r hover:bg-gray-400">
-                {'>>'}
+    <div className="bg-gray-100 min-h-screen p-4">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8 text-indigo-800 text-center">Member Attendance</h1>
+        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+          <div className="p-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
+              <div className="relative w-full sm:w-auto mb-4 sm:mb-0">
+                <DatePicker
+                  selected={searchDate}
+                  onChange={handleDateChange}
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md pl-10 p-2"
+                  placeholderText="Select a date"
+                  dateFormat="MMMM d, yyyy"
+                />
+                <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+              <button
+                onClick={generatePDF}
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center w-full sm:w-auto justify-center"
+                disabled={attendanceData.length === 0}
+              >
+                <FaDownload className="mr-2" />
+                Download PDF Report
               </button>
             </div>
-            <span>
-              Page{' '}
-              <strong>
-                {pageIndex + 1} of {pageOptions.length}
-              </strong>{' '}
-            </span>
-            <select
-              value={pageSize}
-              onChange={e => {
-                setPageSize(Number(e.target.value))
-              }}
-              className="px-2 py-1 border rounded"
-            >
-              {[10, 20, 30, 40, 50].map(pageSize => (
-                <option key={pageSize} value={pageSize}>
-                  Show {pageSize}
-                </option>
-              ))}
-            </select>
+
+            {/* Table for large screens */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {attendanceData.length > 0 ? (
+                    attendanceData.map((attendance) => (
+                      <tr key={attendance.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {attendance.user.FirstName} {attendance.user.LastName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {format(new Date(attendance.DateAttended), "MMMM d, yyyy")}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className="flex items-center">
+                            {getStatusIcon(attendance.status)}
+                            <span className="ml-2">{attendance.status}</span>
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="3" className="px-6 py-4 text-center text-gray-500">
+                        No attendance records found for the selected date
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Cards for mobile screens */}
+            <div className="md:hidden space-y-4">
+              {attendanceData.length > 0 ? (
+                attendanceData.map((attendance) => (
+                  <div key={attendance.id} className="bg-white shadow rounded-lg p-4">
+                    <div className="font-medium text-lg mb-2">
+                      {attendance.user.FirstName} {attendance.user.LastName}
+                    </div>
+                    <div className="text-sm text-gray-500 mb-2">
+                      {format(new Date(attendance.DateAttended), "MMMM d, yyyy")}
+                    </div>
+                    <div className="flex items-center">
+                      {getStatusIcon(attendance.status)}
+                      <span className="ml-2">{attendance.status}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-500">
+                  No attendance records found for the selected date
+                </div>
+              )}
+            </div>
           </div>
-        </>
-      ) : (
-        <p>No attendance data available.</p>
-      )}
+        </div>
+      </div>
     </div>
   );
 };

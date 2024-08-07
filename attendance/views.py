@@ -1,9 +1,10 @@
 import logging
+from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework import generics
 from django.contrib.auth.models import User
-from .serializers import UserSerializer, BaseUserSerializer, AttendanceSerializer, AttendanceStatSerializer
+from .serializers import UserSerializer, BaseUserSerializer, AttendanceSerializer, AttendanceStatSerializer , AttendanceReportSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import UserModel, Attendance
 from rest_framework.authentication import TokenAuthentication
@@ -11,6 +12,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.db import IntegrityError
 from django.db.models import Count, Case, When, IntegerField
+from django.db.models import Q
+from django.utils import timezone
+from datetime import timedelta
 
 # Members view
 
@@ -102,17 +106,90 @@ class CreateOrUpdateAttendanceView(APIView):
 
         return Response(updated_attendances, status=status.HTTP_200_OK)
     
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 class ListAttendanceView(generics.ListAPIView):
-    queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
     permission_classes = [AllowAny]
+    pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        date = self.request.query_params.get('date')
+        queryset = Attendance.objects.all()
+        print(f"Date parameter: {date}")
+        if date:
+            queryset = queryset.filter(DateAttended=date)
+        print(f"Queryset count: {queryset.count()}")
+        return queryset.select_related('user')
+    
 class UpdateAttendanceView(generics.UpdateAPIView):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
     permission_classes = [AllowAny]
     lookup_field = 'id'
+    
+    # retrieve the attendance
 
+class RetrieveAttendanceByDateView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        date = request.query_params.get('date')
+        if not date:
+            return Response({"error": "Date parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            attendances = Attendance.objects.filter(DateAttended=date).select_related('user')
+            serializer = AttendanceSerializer(attendances, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class AttendanceReportView(APIView):
+    def get(self, request):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+
+        if not start_date or not end_date:
+            return Response({"error": "Both start_date and end_date are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            start_date = timezone.datetime.strptime(start_date, "%Y-%m-%d").date()
+            end_date = timezone.datetime.strptime(end_date, "%Y-%m-%d").date()
+        except ValueError:
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if start_date > end_date:
+            return Response({"error": "start_date must be before end_date"}, status=status.HTTP_400_BAD_REQUEST)
+
+        users = UserModel.objects.all()
+        report_data = []
+
+        for user in users:
+            attendance_count = Attendance.objects.filter(
+                user=user,
+                DateAttended__date__range=(start_date, end_date),
+                status='PRESENT'
+            ).count()
+
+            total_days = (end_date - start_date).days + 1
+            attendance_rate = (attendance_count / total_days) * 100 if total_days > 0 else 0
+
+            report_data.append({
+                'user': user,
+                'attendance_count': attendance_count,
+                'total_days': total_days,
+                'attendance_rate': round(attendance_rate, 2)
+            })
+
+        serializer = AttendanceReportSerializer(report_data, many=True)
+        return Response(serializer.data)
+
+
+        
 class RetrieveAttendanceView(generics.RetrieveAPIView):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer

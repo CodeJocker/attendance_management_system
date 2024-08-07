@@ -10,9 +10,18 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('__all__')    
         
 class AttendanceSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    user_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Attendance
-        fields = '__all__'
+        fields = ('id', 'user', 'user_id', 'DateAttended', 'status')
+    
+class AttendanceReportSerializer(serializers.Serializer):
+    user = UserSerializer()
+    attendance_count = serializers.IntegerField()
+    total_days = serializers.IntegerField()
+    attendance_rate = serializers.FloatField()
     
 class BaseUserSerializer(serializers.ModelSerializer):
     class Meta:

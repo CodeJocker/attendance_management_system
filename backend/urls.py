@@ -25,8 +25,10 @@ urlpatterns = [
     path('api/attendance/list/', ListAttendanceView.as_view(), name="list-attendance"),
     path('api/attendance/retrieve/<int:id>/', RetrieveAttendanceView.as_view(), name="retrieve-attendance"),
     path('api/attendance/retrieve/stats/<int:id>/', RetrieveAttendanceView.as_view(), name="retrieve-attendance"),
-    path('api/attendance/delete/<int:id>/', DeleteAttendanceView.as_view(), name="delete-attendance"),
+    path('api/attendance/retrieve/by-date/', RetrieveAttendanceByDateView.as_view(), name="retrieve-attendance"),
+    path('api/attendance/delete/<int:slug>/', DeleteAttendanceView.as_view(), name="delete-attendance"),
     path('api/attendance/update/<int:id>/', UpdateAttendanceView.as_view(), name="update-attendance"),
+    path('api/attendance/report/', AttendanceReportView.as_view(), name='attendance-report'),
     
     # these are the token based urls
     path("api/token/" , TokenObtainPairView.as_view() , name="get_token"),
