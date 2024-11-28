@@ -40,7 +40,7 @@ const UserMenu = ({ isMember }) => (
       leaveTo="transform opacity-0 scale-95"
     >
       <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-        <Menu.Item>
+        {/* <Menu.Item>
           {({ active }) => (
             <Link
               to="/profile"
@@ -51,7 +51,7 @@ const UserMenu = ({ isMember }) => (
               Your Profile
             </Link>
           )}
-        </Menu.Item>
+        </Menu.Item> */}
         <Menu.Item>
           {({ active }) => (
             <Link
@@ -91,19 +91,23 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
+              <Link to="/">
               <h1 className="text-2xl font-bold">
-                <span className="text-blue-200">Cellule </span>
-                <span className="text-white">Yasipi</span>
+                <span className="text-blue-200">XYZ Stock </span>
+                <span className="text-white">Management</span>
               </h1>
+              </Link>
             </div>
           </div>
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
               <NavLink to="/index">Home</NavLink>
-              <NavLink to="/register-member">Add Member</NavLink>
-              <NavLink to="/view">View Members</NavLink>
-              <NavLink to="/mark">Mark Attendance</NavLink>
-              <NavLink to="/view-attendance">View Attendance</NavLink>
+              <NavLink to="/register-member">Add Product</NavLink>
+              <NavLink to="/view">View Product</NavLink>
+              <NavLink to="/mark">Mark Product</NavLink>
+              {/* <NavLink to="/mark">Mark Attendance</NavLink> */}
+              <NavLink to="/view-attendance">View Product</NavLink>
+              {/* <NavLink to="/view-attendance">View Attendance</NavLink> */}
             </div>
           </div>
           <div className="hidden md:block">

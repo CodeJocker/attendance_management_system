@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import api from "../api";
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants';
 
-// eslint-disable-next-line react/prop-types
 function Form({ route, method }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(false)
     const navigate = useNavigate(); 
     
     const name = method === "login" ? "Login" : "Register"; 
@@ -25,51 +25,63 @@ function Form({ route, method }) {
                 navigate("/login");
             }
         } catch (error) {
-            alert(error);
+            // alert(error);
+            setError(true)
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="flex items-center justify-center translate-y-5 translate-x-[-20px]">
-            <div className="form card shrink-0 w-full max-w-sm">
-                <fieldset className="form-control border shadow-2xl rounded-md p-3">
-                    <header className="text-2xl font text-center font-bold">
-                        {name}
-                    </header>
-                    <form onSubmit={handleSubmit} className='flex flex-col card-body'>
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Username</span>
-                            </label>
-                            <input
-                                type="text"
-                                name="slug"
-                                className="input input-bordered bg-slate-200 placeholder:text-slate-800 placeholder:font text-slate-800"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                placeholder="Username"
-                            />
+        <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+            <div className="w-full max-w-md">
+                <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                    <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">{name}</h2>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+                            Username
+                        </label>
+                        <input
+                            className="shadow appearance-none border rounded w-full py-3 px-3 bg-gray-50 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="username"
+                            type="text"
+                            placeholder="Username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                        />
+                    </div>
+                    <div className="mb-6">
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+                            Password
+                        </label>
+                        <input
+                            className="shadow appearance-none bg-gray-50 border rounded w-full py-3 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                            id="password"
+                            type="password"
+                            placeholder="******************"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    {
+                        error === true ? <div className="div">
+                        <div className="dont-have-account">
+                            <h1 className='link link-error decoration-transparent'>Don't have an account? 
+                                <Link to="/register" className='link link-info'>Signup</Link>
+                            </h1>
                         </div>
-                        <div className="form-control">
-                            <label className="label">
-                                <span className="label-text">Password</span>
-                            </label>
-                            <input
-                                type="password"
-                                name="password"
-                                className="input input-bordered bg-slate-200 placeholder:text-slate-800 placeholder:font text-slate-800"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Password"
-                            />
-                        </div>
-                        <div className="button py-5">
-                            <button type="submit" className="btn btn-info btn-outline w-[470px]">{name}</button>
-                        </div>
-                    </form>
-                </fieldset>
+                    </div> : ""
+                    }
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <button
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+                            type="submit"
+                            disabled={loading}
+                        >
+                            {loading ? 'Processing...' : name}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );

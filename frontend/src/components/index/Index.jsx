@@ -20,7 +20,9 @@ const Index = () => {
   return (
     <>
         <div className="Header text-center mt-5">
-            <h1 className="text-2xl font text-slate-800 font-bold">Welcome to the Cellule YaCP Web Platform</h1>
+            <h1 className="text-2xl font text-slate-800 font-bold">Welcome to the Stock Management Web Platform</h1>
+            <h1 className="text-2xl font text-blue-800 font-bold py-5">Product images</h1>
+            {/* <h1 className="text-2xl font text-slate-800 font-bold">Welcome to the Cellule Yasipi Web Platform</h1> */}
         </div>
 
         <section className="slide" id="slide">

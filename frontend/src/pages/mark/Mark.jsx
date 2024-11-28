@@ -43,7 +43,8 @@ const Mark = ({ data }) => {
 
   return (
     <div className="container mx-auto px-4 py-8 bg-gray-100">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">Mark Attendance</h2>
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">Mark Product</h2>
+      {/* <h2 className="text-3xl font-bold mb-6 text-gray-800">Mark Attendance</h2> */}
       <div className="bg-white shadow-md rounded-lg p-6">
         <div className="mb-6">
           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date">
@@ -63,7 +64,7 @@ const Mark = ({ data }) => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {data.map((member) => (
-              <div key={member.id} className="bg-gray-100 border border-slate-500 p-4 rounded-lg shadow">
+              <div key={member.id} className="bg-gray-100 border p-4 rounded-lg shadow-md">
                 <div className="flex items-center mb-2">
                   <img
                     className="w-10 h-10 rounded-full mr-2"
@@ -81,7 +82,8 @@ const Mark = ({ data }) => {
                       {...register(`${member.id}.present`)}
                       className="form-checkbox h-5 w-5 text-blue-600"
                     />
-                    <span className="ml-2 text-sm">Present</span>
+                    <span className="ml-2 text-sm">Stock in</span>
+                    {/* <span className="ml-2 text-sm">Present</span> */}
                   </label>
                   <label className="flex items-center">
                     <input
@@ -89,7 +91,8 @@ const Mark = ({ data }) => {
                       {...register(`${member.id}.late`)}
                       className="form-checkbox h-5 w-5 text-yellow-600"
                     />
-                    <span className="ml-2 text-sm">Late</span>
+                    <span className="ml-2 text-sm">Stock out</span>
+                    {/* <span className="ml-2 text-sm">Late</span> */}
                   </label>
                 </div>
               </div>
@@ -100,7 +103,8 @@ const Mark = ({ data }) => {
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               type="submit"
             >
-              Mark Attendance
+              Mark Product
+              {/* Mark Attendance */}
             </button>
           </div>
         </form>

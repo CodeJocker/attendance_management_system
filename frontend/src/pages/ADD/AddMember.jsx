@@ -5,17 +5,20 @@ import { toast } from "react-toastify";
 import api from "../../api";
 
 const InputField = ({ label, name, type, register, errors, ...rest }) => (
-  <div className="form-control w-full">
-    <label className="label">
-      <span className="label-text font-semibold text-slate-600">{label}</span>
+  <div className="mb-4">
+    <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+      {label}
     </label>
     <input
+      id={name}
       type={type}
       {...register(name)}
-      className={`input input-bordered bg-white border-slate-600 focus:outline-blue-700 w-full ${errors[name] ? 'input-error' : ''}`}
+      className={`w-full px-3 py-2 border bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
+        errors[name] ? 'border-red-500' : 'border-gray-300'
+      }`}
       {...rest}
     />
-    {errors[name] && <span className="text-red-500 text-xs mt-1">{errors[name].message}</span>}
+    {errors[name] && <p className="mt-1 text-xs text-red-500">{errors[name].message}</p>}
   </div>
 );
 
@@ -51,16 +54,17 @@ const AddMember = () => {
   };
 
   return (
-    <div className="flex items-center justify-center py-3 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Add New Member
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
+    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="text-center text-3xl font-extrabold text-gray-900">
+          Add New Member
+        </h2>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
               <InputField
                 label="Slug"
                 name="slug"
@@ -70,7 +74,8 @@ const AddMember = () => {
                 required
               />
               <InputField
-                label="Username"
+                label="Product name"
+                // label="Username"
                 name="username"
                 type="text"
                 register={register}
@@ -78,7 +83,8 @@ const AddMember = () => {
                 required
               />
               <InputField
-                label="First Name"
+                label="Owner First Name"
+                // label="First Name"
                 name="FirstName"
                 type="text"
                 register={register}
@@ -86,7 +92,8 @@ const AddMember = () => {
                 required
               />
               <InputField
-                label="Last Name"
+                label="Owner Last Name"
+                // label="Last Name"
                 name="LastName"
                 type="text"
                 register={register}
@@ -94,7 +101,8 @@ const AddMember = () => {
                 required
               />
               <InputField
-                label="Phone Number"
+                label="Product price in rwf"
+                // label="Phone Number"
                 name="Tel"
                 type="tel"
                 register={register}
@@ -102,14 +110,15 @@ const AddMember = () => {
                 required
               />
               <InputField
-                label="Date of Birth"
+                label="Registered at"
+                // label="Date of Birth"
                 name="DateOfBirth"
                 type="date"
                 register={register}
                 errors={errors}
                 required
               />
-              <InputField
+              {/* <InputField
                 label="Date of Church Entry"
                 name="DateOfChurchEntry"
                 type="date"
@@ -124,10 +133,11 @@ const AddMember = () => {
                 register={register}
                 errors={errors}
                 required
-              />
+              /> */}
             </div>
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700">
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Photo
               </label>
               <Controller
@@ -135,26 +145,56 @@ const AddMember = () => {
                 control={control}
                 rules={{ required: "Photo is required" }}
                 render={({ field }) => (
-                  <input
-                    type="file"
-                    onChange={(e) => field.onChange(e.target.files)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div className="space-y-1 text-center">
+                      <svg
+                        className="mx-auto h-12 w-12 text-gray-400"
+                        stroke="currentColor"
+                        fill="none"
+                        viewBox="0 0 48 48"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <div className="flex text-sm text-gray-600">
+                        <label
+                          htmlFor="file-upload"
+                          className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                        >
+                          <span>Upload a file</span>
+                          <input
+                            id="file-upload"
+                            name="file-upload"
+                            type="file"
+                            className="sr-only"
+                            onChange={(e) => field.onChange(e.target.files)}
+                          />
+                        </label>
+                        <p className="pl-1">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+                  </div>
                 )}
               />
-              {errors.image && <span className="text-red-500 text-xs mt-1">{errors.image.message}</span>}
+              {errors.image && <p className="mt-1 text-xs text-red-500">{errors.image.message}</p>}
             </div>
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Add Member
-            </button>
-          </div>
-        </form>
+            <div>
+              <button
+                type="submit"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Add Member
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

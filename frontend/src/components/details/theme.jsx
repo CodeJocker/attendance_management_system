@@ -1,28 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 
 const Theme = () => {
-    const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-        localStorage.setItem('theme', theme);
-    }, [theme]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
 
-    const toggleTheme = () => {
-        setTheme(theme === 'dark' ? 'light' : 'dark');
+    return () => {
+      clearTimeout(timer);
     };
+  }, []);
 
-    return (
-        <div className='bg-white dark:bg-slate-900 h-screen w-full flex items-center justify-center'>
-            <button onClick={toggleTheme} className='text-slate-900 dark:text-slate-200 border border-slate-300 p-3 rounded-md'>
-                Change Theme
-            </button>
-        </div>
-    );
+  return (
+    <div className="bg-white dark:bg-slate-900 h-screen w-full flex items-center justify-center">
+      {loading? (
+        <h1 className="text-2xl font-bold">
+          <span className="text-blue-500">XYZ Stock  </span>
+          <span className="text-gray-500">management</span>
+        </h1>
+      ) : (
+        <Navigate to="/index" replace={true} />
+      )}
+    </div>
+  );
 };
 
 export default Theme;

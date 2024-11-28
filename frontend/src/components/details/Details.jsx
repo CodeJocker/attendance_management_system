@@ -8,6 +8,7 @@ import {
   FaUser,
   FaChartPie,
   FaListAlt,
+  FaMoneyBill,
 } from "react-icons/fa";
 import { Pie, Bar } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from "chart.js";
@@ -39,6 +40,7 @@ const UserDetails = () => {
     try {
       const response = await api.get(`/api/attendance/retrieve/stats/${id}/`);
       setAttendanceData(response.data);
+      console.log(response.data)
     } catch (error) {
       console.error("Error fetching user attendance statistics:", error);
       setError("Failed to fetch attendance statistics");
@@ -174,14 +176,15 @@ const UserDetails = () => {
         <div className="md:flex">
           <div className="md:flex-shrink-0">
             <img
-              className="h-48 w-full object-cover md:w-48"
+              className="h-auto w-full object-cover md:w-48"
               src={user.image}
               alt={`${user.FirstName} ${user.LastName}`}
             />
           </div>
           <div className="p-8">
             <div className="uppercase tracking-wide text-sm text-indigo-500 font-semibold">
-              User Profile
+              Product Details
+              {/* User Profile */}
             </div>
             <h2 className="mt-1 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
               {user.FirstName} {user.LastName}
@@ -195,12 +198,17 @@ const UserDetails = () => {
               {user.Tel}
             </p>
             <p className="mt-2 text-gray-500">
+              <FaMoneyBill className="inline mr-2" aria-label="Phone number" />
+              5000
+            </p>
+            <p className="mt-2 text-gray-500">
               <FaBirthdayCake className="inline mr-2" aria-label="Date of birth" />
               {format(new Date(user.DateOfBirth), "dd/MM/yyyy")}
             </p>
             <p className="mt-2 text-gray-500">
               <FaCalendarCheck className="inline mr-2" aria-label="Date of church entry" />
-              Joined church: {format(new Date(user.DateOfChurchEntry), "dd/MM/yyyy")}
+              Product Register Date: {format(new Date(user.DateOfChurchEntry), "dd/MM/yyyy")}
+              {/* Joined church: {format(new Date(user.DateOfChurchEntry), "dd/MM/yyyy")} */}
             </p>
           </div>
         </div>
