@@ -1,0 +1,8 @@
+/env
+/.vscode
+sample.txt
+almost.jsx
+/node_modules
+.env
+/media
+/db.sqlite3
